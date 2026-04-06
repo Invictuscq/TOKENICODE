@@ -6,7 +6,7 @@
 set -e
 
 APP_NAME="TOKENICODE"
-BUNDLE_PATH="src-tauri/target/release/bundle/macos/${APP_NAME}.app"
+BUNDLE_PATH="src-tauri/target/aarch64-apple-darwin/release/bundle/macos/${APP_NAME}.app"
 INSTALL_PATH="/Applications/${APP_NAME}.app"
 
 cd "$(dirname "$0")"
@@ -34,7 +34,16 @@ pnpm install --frozen-lockfile
 
 # ── 构建 ──
 echo "==> 开始构建 (首次约 5-10 分钟，后续增量约 1-2 分钟)..."
-pnpm tauri build --target aarch64-apple-darwin
+pnpm tauri build --target aarch64-apple-darwin 2>&1 || {
+  # Tauri exits with error if TAURI_SIGNING_PRIVATE_KEY is missing (updater signing),
+  # but the .app bundle is already built successfully at this point.
+  if [ -d "$BUNDLE_PATH" ]; then
+    echo "    (忽略签名警告，.app 已构建成功)"
+  else
+    echo "!! 构建失败"
+    exit 1
+  fi
+}
 
 # ── 安装到 /Applications ──
 if [ -d "$BUNDLE_PATH" ]; then
