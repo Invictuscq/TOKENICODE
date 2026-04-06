@@ -25,7 +25,10 @@ if [ "$1" = "sync" ]; then
     exit 1
   }
   git push --force-with-lease origin custom/dark-theme-low-brightness
-  echo "==> 上游同步完成"
+  # 检测上游版本是否变化，提醒更新自定义日志
+  UPSTREAM_VER=$(grep '"version"' src-tauri/tauri.conf.json | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+  echo "==> 上游同步完成 (当前版本: v${UPSTREAM_VER})"
+  echo "    提醒: 如果上游有新版本，请更新 CUSTOM_CHANGELOG.md"
 fi
 
 # ── 安装依赖 ──
