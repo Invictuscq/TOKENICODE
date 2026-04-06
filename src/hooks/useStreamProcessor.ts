@@ -353,6 +353,16 @@ export function useStreamProcessor(config: StreamProcessorConfig) {
               },
             });
           } else {
+            // Also update planContent so the card reflects the latest plan
+            let bgUpdatedPlan = '';
+            if (bgTab) {
+              for (let i = bgTab.messages.length - 1; i >= 0; i--) {
+                if (bgTab.messages[i].role === 'assistant' && bgTab.messages[i].type === 'text' && bgTab.messages[i].content) {
+                  bgUpdatedPlan = bgTab.messages[i].content;
+                  break;
+                }
+              }
+            }
             store.updateMessage(tabId, 'plan_review_current', {
               permissionData: {
                 requestId: msg.request_id,
@@ -360,6 +370,7 @@ export function useStreamProcessor(config: StreamProcessorConfig) {
                 input: msg.input,
                 toolUseId: msg.tool_use_id,
               },
+              ...(bgUpdatedPlan ? { planContent: bgUpdatedPlan, content: bgUpdatedPlan } : {}),
             });
           }
           store.setActivityStatus(tabId, { phase: 'awaiting' });
@@ -921,7 +932,18 @@ export function useStreamProcessor(config: StreamProcessorConfig) {
         };
         const planReview = messages.find((m) => m.id === 'plan_review_current' && !m.resolved);
         if (planReview) {
-          chatStore.updateMessage(tabId, 'plan_review_current', { permissionData: permData });
+          // Also update planContent so the card reflects the latest plan
+          let updatedPlanContent = '';
+          for (let i = messages.length - 1; i >= 0; i--) {
+            if (messages[i].role === 'assistant' && messages[i].type === 'text' && messages[i].content) {
+              updatedPlanContent = messages[i].content;
+              break;
+            }
+          }
+          chatStore.updateMessage(tabId, 'plan_review_current', {
+            permissionData: permData,
+            ...(updatedPlanContent ? { planContent: updatedPlanContent, content: updatedPlanContent } : {}),
+          });
         } else {
           // PlanReviewCard not yet created — create one with permission data
           let planContent = '';

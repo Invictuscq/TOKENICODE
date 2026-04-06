@@ -104,8 +104,38 @@ export function PlanReviewCard({ message, floating }: Props) {
     window.dispatchEvent(new CustomEvent('tokenicode:plan-execute'));
   }, [isResolved, approving, message.id, message.permissionData]);
 
-  const handleModify = useCallback(() => {
-    // TiptapEditor uses [data-chat-input] attribute, with an inner [contenteditable] div
+  const handleModify = useCallback(async () => {
+    // Reject the pending ExitPlanMode permission so CLI accepts new user input
+    const permData = message.permissionData;
+    const planTabId = useSessionStore.getState().selectedSessionId;
+    if (permData?.requestId) {
+      const stdinId = getActiveTabState().sessionMeta.stdinId;
+      if (stdinId) {
+        try {
+          const { bridge } = await import('../../lib/tauri-bridge');
+          await bridge.respondPermission(
+            stdinId,
+            permData.requestId,
+            false, // deny — user wants to modify the plan
+            undefined,
+            permData.toolUseId,
+            permData.input,
+          );
+        } catch (err) {
+          console.error('[TC:plan] Failed to deny ExitPlanMode for modify:', err);
+        }
+      }
+    }
+
+    // Mark old card as resolved so a fresh card will be created for the new plan
+    if (planTabId) {
+      useChatStore.getState().updateMessage(planTabId, message.id, {
+        resolved: true,
+        interactionState: 'resolved',
+      });
+    }
+
+    // Focus the input editor for the user to type their modification
     const editorEl = document.querySelector('[data-chat-input] [contenteditable="true"]') as HTMLElement
       ?? document.querySelector('[data-chat-input]') as HTMLElement
       ?? document.querySelector('textarea') as HTMLElement;
@@ -113,7 +143,7 @@ export function PlanReviewCard({ message, floating }: Props) {
       editorEl.focus();
       editorEl.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
-  }, []);
+  }, [message.id, message.permissionData]);
 
   return (
     <div className={`${floating ? '' : 'ml-11'} ${isResolved ? 'opacity-80' : ''} animate-scale-in`}>
