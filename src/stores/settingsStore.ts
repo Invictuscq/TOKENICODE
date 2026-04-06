@@ -48,6 +48,8 @@ interface SettingsState {
   locale: Locale;
   /** Global UI font size in px (default 18) */
   fontSize: number;
+  /** Text brightness multiplier for dark mode (0.7–1.0, default 0.85) */
+  textBrightness: number;
   /** Sidebar width in px (default 280) */
   sidebarWidth: number;
   /** Whether the CLI setup wizard has been completed or skipped */
@@ -95,6 +97,7 @@ interface SettingsState {
   setFontSize: (size: number) => void;
   increaseFontSize: () => void;
   decreaseFontSize: () => void;
+  setTextBrightness: (brightness: number) => void;
   setSidebarWidth: (width: number) => void;
   setSetupCompleted: (completed: boolean) => void;
   setThinkingLevel: (level: ThinkingLevel) => void;
@@ -134,6 +137,7 @@ export const useSettingsStore = create<SettingsState>()(
       sessionMode: 'bypass',
       locale: 'zh',
       fontSize: 18,
+      textBrightness: 0.85,
       sidebarWidth: 280,
       setupCompleted: false,
       thinkingLevel: 'medium' as ThinkingLevel,
@@ -211,6 +215,9 @@ export const useSettingsStore = create<SettingsState>()(
 
       decreaseFontSize: () =>
         set((state) => ({ fontSize: Math.max(10, state.fontSize - 1) })),
+
+      setTextBrightness: (brightness) =>
+        set(() => ({ textBrightness: Math.max(0.5, Math.min(1.0, brightness)) })),
 
       setSidebarWidth: (width) =>
         set(() => ({ sidebarWidth: Math.max(180, Math.min(450, width)) })),
@@ -315,6 +322,7 @@ export const useSettingsStore = create<SettingsState>()(
         sessionMode: state.sessionMode,
         locale: state.locale,
         fontSize: state.fontSize,
+        textBrightness: state.textBrightness,
         sidebarWidth: state.sidebarWidth,
         setupCompleted: state.setupCompleted,
         thinkingLevel: state.thinkingLevel,

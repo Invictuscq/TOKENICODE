@@ -17,25 +17,25 @@ const COLOR_THEMES: { id: ColorTheme; labelKey: string; preview: string; preview
     id: 'black',
     labelKey: 'settings.black',
     preview: '#333333',
-    previewDark: '#B1B1B1',
+    previewDark: '#D0D0D0',
   },
   {
     id: 'blue',
     labelKey: 'settings.blue',
     preview: '#4E80F7',
-    previewDark: '#5B83D9',
+    previewDark: '#6B9AFF',
   },
   {
     id: 'orange',
     labelKey: 'settings.orange',
     preview: '#C47252',
-    previewDark: '#B4715A',
+    previewDark: '#D4856A',
   },
   {
     id: 'green',
     labelKey: 'settings.green',
     preview: '#57A64B',
-    previewDark: '#5DA253',
+    previewDark: '#6DBF62',
   },
 ];
 
@@ -78,6 +78,8 @@ export function GeneralTab() {
   const locale = useSettingsStore((s) => s.locale);
   const selectedModel = useSettingsStore((s) => s.selectedModel);
   const fontSize = useSettingsStore((s) => s.fontSize);
+  const textBrightness = useSettingsStore((s) => s.textBrightness);
+  const setTextBrightness = useSettingsStore((s) => s.setTextBrightness);
   const setTheme = useSettingsStore((s) => s.setTheme);
   const setColorTheme = useSettingsStore((s) => s.setColorTheme);
   const setLocale = useSettingsStore((s) => s.setLocale);
@@ -278,6 +280,27 @@ export function GeneralTab() {
                 flex items-center justify-center border-l border-border-subtle"
             >+</button>
           </div>
+        </div>
+
+        {/* Text Brightness (dark mode only) */}
+        <div>
+          <h3 className="text-[13px] font-medium text-text-primary mb-2">
+            {t('settings.textBrightness')}
+          </h3>
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min={50}
+              max={100}
+              value={Math.round(textBrightness * 100)}
+              onChange={(e) => setTextBrightness(Number(e.target.value) / 100)}
+              className="w-24 accent-accent"
+            />
+            <span className="w-10 text-center text-[13px] font-semibold text-text-primary">
+              {Math.round(textBrightness * 100)}%
+            </span>
+          </div>
+          <p className="text-[11px] text-text-tertiary mt-1">{t('settings.textBrightnessHint')}</p>
         </div>
 
         {/* Default Model */}

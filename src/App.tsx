@@ -89,6 +89,7 @@ function App() {
   const theme = useSettingsStore((s) => s.theme);
   const colorTheme = useSettingsStore((s) => s.colorTheme);
   const fontSize = useSettingsStore((s) => s.fontSize);
+  const textBrightness = useSettingsStore((s) => s.textBrightness);
   const settingsOpen = useSettingsStore((s) => s.settingsOpen);
   const workingDirectory = useSettingsStore((s) => s.workingDirectory);
   const lastSeenVersion = useSettingsStore((s) => s.lastSeenVersion);
@@ -459,6 +460,68 @@ function App() {
   useEffect(() => {
     document.documentElement.style.fontSize = `${fontSize}px`;
   }, [fontSize]);
+
+  // Apply text brightness to dark mode CSS variables
+  useEffect(() => {
+    const root = document.documentElement;
+    const isDark = root.classList.contains('dark');
+
+    // CSS variables to scale with brightness (text, accent, gradient, syntax)
+    const scaledVars = [
+      '--color-text-primary',
+      '--color-text-secondary',
+      '--color-text-tertiary',
+      '--color-text-muted',
+      '--color-accent',
+      '--color-accent-light',
+      '--color-accent-hover',
+      '--color-gradient-start',
+      '--color-gradient-mid',
+      '--color-gradient-end',
+      '--color-syntax-keyword',
+      '--color-syntax-string',
+      '--color-syntax-number',
+      '--color-syntax-function',
+      '--color-syntax-comment',
+      '--color-syntax-type',
+      '--color-syntax-builtin',
+      '--color-syntax-delete',
+      '--color-syntax-meta',
+    ];
+
+    // Remove overrides when not in dark mode or at full brightness
+    if (!isDark || textBrightness >= 1.0) {
+      scaledVars.forEach((v) => root.style.removeProperty(v));
+      return;
+    }
+
+    // Remove inline overrides first so getComputedStyle reads base CSS values
+    scaledVars.forEach((v) => root.style.removeProperty(v));
+
+    const computed = getComputedStyle(root);
+    const clamp = (n: number) => Math.max(0, Math.min(255, Math.round(n)));
+
+    scaledVars.forEach((varName) => {
+      const raw = computed.getPropertyValue(varName).trim();
+      // Handle rgb(r, g, b) format (browser computed style)
+      const rgbMatch = raw.match(/^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/);
+      if (rgbMatch) {
+        const r = clamp(Number(rgbMatch[1]) * textBrightness);
+        const g = clamp(Number(rgbMatch[2]) * textBrightness);
+        const b = clamp(Number(rgbMatch[3]) * textBrightness);
+        root.style.setProperty(varName, `rgb(${r}, ${g}, ${b})`);
+        return;
+      }
+      // Handle #RRGGBB hex format
+      const hexMatch = raw.match(/^#([0-9a-f]{6})$/i);
+      if (hexMatch) {
+        const r = clamp(parseInt(hexMatch[1].slice(0, 2), 16) * textBrightness);
+        const g = clamp(parseInt(hexMatch[1].slice(2, 4), 16) * textBrightness);
+        const b = clamp(parseInt(hexMatch[1].slice(4, 6), 16) * textBrightness);
+        root.style.setProperty(varName, `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`);
+      }
+    });
+  }, [textBrightness, colorTheme, theme]);
 
   // Cmd+/- global shortcut for font size
   useEffect(() => {
