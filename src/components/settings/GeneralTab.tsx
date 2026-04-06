@@ -17,25 +17,25 @@ const COLOR_THEMES: { id: ColorTheme; labelKey: string; preview: string; preview
     id: 'black',
     labelKey: 'settings.black',
     preview: '#333333',
-    previewDark: '#D0D0D0',
+    previewDark: '#B1B1B1',
   },
   {
     id: 'blue',
     labelKey: 'settings.blue',
     preview: '#4E80F7',
-    previewDark: '#6B9AFF',
+    previewDark: '#5B83D9',
   },
   {
     id: 'orange',
     labelKey: 'settings.orange',
     preview: '#C47252',
-    previewDark: '#D4856A',
+    previewDark: '#B4715A',
   },
   {
     id: 'green',
     labelKey: 'settings.green',
     preview: '#57A64B',
-    previewDark: '#6DBF62',
+    previewDark: '#5DA253',
   },
 ];
 
